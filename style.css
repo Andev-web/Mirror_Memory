@@ -33,9 +33,11 @@ body {
 .wrap {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 18px 42px;
+  padding: 12px 12px 16px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-
 .top {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -138,17 +140,27 @@ select {
 }
 
 .board-wrap {
-  margin-top: 18px;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 .board {
   display: grid;
   gap: 10px;
   user-select: none;
-}
 
+  align-content: center;
+  justify-content: center;
+
+  width: fit-content;
+  margin: 0 auto;
+
+  max-height: calc(100vh - 260px);
+}
 .card {
   position: relative;
+  width: 105px;
   aspect-ratio: 1 / 1;
   border-radius: 16px;
   perspective: 900px;
@@ -227,6 +239,36 @@ select {
 @media (max-width: 860px) {
   .top {
     grid-template-columns: 1fr;
+  }
+  .wrap {
+    padding: 8px 8px 12px;
+  }
+
+  .top {
+    gap: 10px;
+  }
+
+  .panel {
+    padding: 10px;
+  }
+
+  .controls {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .board {
+    gap: 6px;
+    max-height: calc(100vh - 320px);
+  }
+
+  .card {
+    width: min(20vw, 72px);
   }
   .stats {
     grid-template-columns: repeat(2, 1fr);

@@ -38,8 +38,13 @@ const GLYPHS = [
   "24.svg",
 ];
 
-const ROWS = 4;
-const COLS = 6;
+const DIFFICULTIES = {
+  easy: { rows: 3, cols: 4 },
+  medium: { rows: 4, cols: 4 },
+  hard: { rows: 4, cols: 6 },
+};
+
+let currentDifficulty = selDifficulty.value;
 
 let deck = []; // array of glyphs length N*N
 let first = null; // first flipped card element
@@ -57,13 +62,14 @@ function init() {
   loadBest();
 
   selDifficulty.addEventListener("change", () => {
-    size = Number(selDifficulty.value);
+    currentDifficulty = selDifficulty.value;
     newGame();
   });
+
   btnNew.addEventListener("click", newGame);
   btnPeek.addEventListener("click", peekAll);
 
-  size = Number(selDifficulty.value);
+  currentDifficulty = selDifficulty.value;
   newGame();
 }
 
@@ -80,9 +86,12 @@ function newGame() {
   elMatches.textContent = String(matches);
   elTime.textContent = "00:00";
   toast.textContent = "";
+  loadBest();
 
-  deck = buildDeck(ROWS, COLS);
-  renderBoard(ROWS, COLS, deck);
+  const { rows, cols } = DIFFICULTIES[currentDifficulty];
+
+  deck = buildDeck(rows, cols);
+  renderBoard(rows, cols, deck);
 }
 function buildDeck(rows, cols) {
   const total = rows * cols; // 24
@@ -157,10 +166,12 @@ function onFlip(cardEl) {
     resetPick();
 
     // Ganaste
-    if (matches === (ROWS * COLS) / 2) {
+    const { rows, cols } = DIFFICULTIES[currentDifficulty];
+
+    if (matches === (rows * cols) / 2) {
       stopTimer();
       const seconds = Math.floor((Date.now() - startAt) / 1000);
-      onWin(seconds, moves, size);
+      onWin(seconds, moves, `${rows}x${cols}`);
     }
   } else {
     // No match ❌
@@ -236,23 +247,23 @@ function peekAll() {
   }, 900);
 }
 
-function onWin(seconds, moves, n) {
-  toast.textContent = `✅ HACK COMPLETE — ${formatTime(seconds)} · ${moves} intentos · ${n}×${n}`;
-  const best = getBestFor(n);
+function onWin(seconds, moves, difficultyKey) {
+  toast.textContent = `✅ HACK COMPLETE — ${formatTime(seconds)} · ${moves} intentos · ${difficultyKey}`;
+  const best = getBestFor(difficultyKey);
 
-  const currentScore = computeScore(seconds, moves, n);
+  const currentScore = computeScore(seconds, moves, difficultyKey);
   const bestScore = best?.score ?? -Infinity;
 
   if (currentScore > bestScore) {
-    setBestFor(n, { score: currentScore, seconds, moves });
+    setBestFor(difficultyKey, { score: currentScore, seconds, moves });
     loadBest();
     toast.textContent += " · 🏆 ¡Nuevo récord!";
   }
 }
 
-function computeScore(seconds, moves, n) {
-  // Puntuación simple: tablero grande pesa más, menos tiempo + menos movimientos suma
-  const base = n * n * 100;
+function computeScore(seconds, moves, difficultyKey) {
+  const [rows, cols] = difficultyKey.split("x").map(Number);
+  const base = rows * cols * 100;
   const timePenalty = seconds * 2;
   const movePenalty = moves * 6;
   return Math.max(0, base - timePenalty - movePenalty);
@@ -260,13 +271,15 @@ function computeScore(seconds, moves, n) {
 
 function loadBest() {
   const data = safeParse(localStorage.getItem(BEST_KEY)) ?? {};
-  const n = Number(selDifficulty.value || 6);
-  const best = data[String(n)];
+  const { rows, cols } = DIFFICULTIES[currentDifficulty];
+  const key = `${rows}x${cols}`;
+  const best = data[key];
 
   if (!best) {
     elBest.textContent = "—";
     return;
   }
+
   elBest.textContent = `${formatTime(best.seconds)} · ${best.moves} mov`;
 }
 
